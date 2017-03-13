@@ -1,4 +1,14 @@
 
+;;~Bind ESC to Cancel Autocomplete Menu
+;;~Create functions so that they I try to COPY or CUT when there is no region selected,
+;; it will copy or cut the entire line that the cursor points to
+
+
+
+
+
+
+
 ;;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
                                         ;Packages
@@ -26,9 +36,9 @@
 (setq inhibit-splash-screen t)
 (setq inhibit-startup-message t)
 (setq toggle-scroll-bar t)
-					;(setq next-line-add-newlines nil) ;not sure what these do
-					;(setq-default truncate-lines t)
-					;(setq truncate-partial-width-windows nil)
+(setq next-line-add-newlines nil) ;not sure what these do
+(setq-default truncate-lines t)
+(setq truncate-partial-width-windows nil)
 (toggle-frame-maximized)
 (split-window-horizontally)
 (scroll-bar-mode -1)
@@ -37,7 +47,9 @@
 (tool-bar-mode -1)
 (setq-default hl-line-sticky-flag nil)
 (global-hl-line-mode 1)
-(electric-pair-mode 1)
+(electric-pair-mode t)
+(setq-default backward-delete-char-untabify-method 'hungry)
+
 					;Format C-Mode and C++-Mode
 
 (setq c-default-style "ellemtel")
@@ -51,18 +63,20 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-enabled-themes (quote (tango-dark)))
- '(package-selected-packages
-   (quote
-    (magit atomic-chrome projectile iedit helm diminish company bind-key))))
+ '(ede-project-directories (quote ("w:/Win32Project1/Win32Project1/source")))
+ '(package-selected-packages (quote (pandoc-mode org-bullets pandoc org magit ggtags)))
+ '(show-paren-mode t)
+ '(tool-bar-mode nil))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "#282C2E" :foreground "#F5DEB3" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 98 :width normal :foundry "outline" :family "Courier New"))))
+ '(default ((t (:inherit nil :stipple nil :background "#1C1D1F" :foreground "#F5DEB3" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 98 :width normal :foundry "outline" :family "Consolas"))))
+ '(company-tooltip ((t (:background "steel blue" :foreground "black"))))
  '(cursor ((t (:background "green1"))))
- '(font-lock-comment-face ((t (:foreground "gray50"))))
+ '(font-lock-comment-face ((t (:foreground "dim gray"))))
  '(font-lock-constant-face ((t (:foreground "indian red"))))
  '(font-lock-function-name-face ((t (:foreground "#A2793B"))))
  '(font-lock-keyword-face ((t (:foreground "#4DB9EF"))))
@@ -71,23 +85,28 @@
  '(font-lock-variable-name-face ((t (:foreground "#F0E7B7"))))
  '(highlight ((t (:background "RoyalBlue4"))))
  '(hl-line ((t (:background "black"))))
- '(mode-line ((t (:background "dark slate blue" :foreground "#eeeeec")))))
+ '(mode-line ((t (:background "dark slate blue" :foreground "#eeeeec"))))
+ '(show-paren-match ((t (:background "LightCyan4"))))
+ '(show-paren-mismatch ((t (:background "red" :foreground "white")))))
 
 ;;UNTIL HERE |+++++++++++++++++++++++++++++++++|
 					;Key Bindings
 
-(global-set-key (kbd "C-o") 'other-window)
+;;(global-set-key (kbd "C-o") 'other-window)
 (global-set-key [f4] 'kill-buffer)
 (global-set-key (kbd "C-x C-b") 'buffer-menu-other-window)
 (defun my:switch-c-source-files ()
   (local-set-key (kbd "C-x C-i") 'ff-find-other-file)
   (local-set-key (kbd "<tab>") 'dabbrev-expand)
-  (local-set-key (kbd "S-<tab>") 'indent-for-tab-command))
+  (local-set-key (kbd "S-<tab>") 'indent-for-tab-command)
+  (local-set-key (kbd "<C-m>") 'compile)
+  (local-set-key (kbd "<C-m>") 'compile)
+  )
 (add-hook 'c-mode-common-hook 'my:switch-c-source-files)
 (add-hook 'c++-mode-common-hook 'my:switch-c-source-files)
 
 ;;NOTE:EXPIREMENTAL:-COPY,-PASTE,-CUT | Not sure what key should be what
-(global-set-key (kbd "C-q") 'kill-ring-save)
+(global-set-key (kbd "C-S-w") 'kill-ring-save)
 (global-set-key (kbd "C-z") 'yank)
 
 
@@ -96,9 +115,8 @@
 (define-key input-decode-map [?\C-m] [C-m]) ;;Stops C-m from acting as RET
 (setq compile-command "build")
 (setq compilation-ask-about-save nil)
-(setq compilation-read-command nil)
+;;(setq compilation-read-command nil)
 
-(global-set-key (kbd "<C-m>") 'compile)
 
 
 ;;|===========================| My Functions |===========================|
@@ -109,17 +127,21 @@
 (setq todo-modes '(text-mode c++-mode c-mode emacs-lisp-mode))
 (make-face 'my_todo_face)
 (make-face 'my_note_face)
+(make-face 'my_study_face)
 (make-face 'my_warning_face)
 (mapc (lambda (mode)
 	(font-lock-add-keywords
 	 mode
 	 '(("\\<\\(TODO\\)" 1 'my_todo_face t)
 	   ("\\<\\(NOTE\\)" 1 'my_note_face t)
-	   ("\\<\\(WARNING\\)" 1 'my_warning_face t))))
+	   ("\\<\\(IMPORTANT\\)" 1 'my_warning_face t)
+	   ("\\<\\(STUDY\\)" 1 'my_study_face t)
+	   )))
       todo-modes)
 (modify-face 'my_todo_face "Red" nil nil t nil t nil nil)
 (modify-face 'my_note_face "Dark Green" nil nil t nil t nil nil)
 (modify-face 'my_warning_face "Yellow" nil nil t nil t nil nil)
+(modify-face 'my_study_face "Yellow" nil nil t nil t nil nil)
 
 
 					;# NOT SURE WHAT TO CALL YET #
@@ -191,12 +213,41 @@ This command does not push text to `kill-ring'."
     (setq p2 (point))
     (delete-region p1 p2)))
 
+;;================================================================
+
+;; (defun my-swap-line-up ()
+;;   (interactive)
+;;   "Swaps the current line witht the one above"
+;;   (beginning-of-line)
+;;   (kill-whole-line)
+;;   (previous-line)
+;;   (beginning-of-line)
+;; (save-excursion
+;;   (yank))
+;;   )
+
+;; (defun my-swap-line-down ()
+;;   (interactive)
+;;   "Swaps the current line witht the one above"
+;;   (beginning-of-line)
+;;   (kill-whole-line)
+;;   (next-line)
+;;  (save-excursion
+;;   (yank))
+;;   )
+  
+
+;; (global-set-key (kbd "M-<up>") 'my-swap-line-up)
+;; (global-set-key (kbd "M-<down>") 'my-swap-line-down)
+
+;;================================================================
+
 ;;NOTE:EXPIREMENTAL: Bind them to emacs's default shortcut keys:
 ;;TODO: Make a single delete line command that will delete the entire line
 (global-set-key (kbd "C-S-k") 'my-delete-line-backward)
 (global-set-key (kbd "C-k") 'my-delete-line)
 ;;(global-set-key (kbd "M-d") 'my-delete-word)
-(global-set-key (kbd "C-d") 'my-delete-word)
+(global-set-key (kbd "<C-delete>") 'my-delete-word)
 ;;(global-set-key (kbd "<M-backspace>") 'my-backward-delete-word)
 (global-set-key (kbd "<C-backspace>") 'my-backward-delete-word)
 
@@ -214,3 +265,163 @@ This command does not push text to `kill-ring'."
     (if face (message "Face: %s" face) (message "No face at %d" pos))))			   
 ;;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+;;WARNING: EXPIREMENTAL!!!!!!!!
+;; (require 'auto-complete)
+;; (require 'auto-complete-config)
+;; (ac-config-default)
+
+;; (defun my:ac-c-header-init ()
+;;   (require 'auto-complete-c-headers)
+;;   (add-to-list 'ac-sources 'ac-source-c-headers)
+;;   (add-to-list 'achead:include-directories '"C:/MinGW/include")
+;; )
+;; ; now let's call this function from c/c++ hooks
+;; (add-hook 'c++-mode-hook 'my:ac-c-header-init)
+;; (add-hook 'c-mode-hook 'my:ac-c-header-init)
+
+
+;; (autoload 'turn-on-ctags-auto-update-mode "ctags-update" "turn on `ctags-auto-update-mode'." t)
+;; (add-hook 'c-mode-common-hook  'turn-on-ctags-auto-update-mode)
+;; (add-hook 'c++-mode-common-hook  'turn-on-ctags-auto-update-mode)
+;; (add-hook 'emacs-lisp-mode-hook  'turn-on-ctags-auto-update-mode)
+
+;; (require 'auto-complete-exuberant-ctags)
+;; (ac-exuberant-ctags-setup)
+
+;; (define-key ac-completing-map [down] nil)
+;; (define-key ac-completing-map [up] nil)
+;; (define-key ac-completing-map (kbd "<backtab>") 'ac-expand) 
+;; (define-key ac-completing-map "\t" 'ac-complete)
+;; (define-key ac-completing-map [tab] 'ac-complete)
+;; (define-key ac-completing-map "\r" nil)
+
+
+;; (add-hook 'c++-mode-hook 'irony-mode)
+;; (add-hook 'c-mode-hook 'irony-mode)
+;; (add-hook 'objc-mode-hook 'irony-mode)
+
+;; ;; replace the `completion-at-point' and `complete-symbol' bindings in
+;; ;; irony-mode's buffers by irony-mode's function
+;; (defun my-irony-mode-hook ()
+;;   (define-key irony-mode-map [remap completion-at-point]
+;;     'irony-completion-at-point-async)
+;;   (define-key irony-mode-map [remap complete-symbol]
+;;     'irony-completion-at-point-async));; Windows performance tweaks
+;; ;;
+;; (when (boundp 'w32-pipe-read-delay)
+;;   (setq w32-pipe-read-delay 0))
+;; ;; Set the buffer size to 64K on Windows (from the original 4K)
+;; (when (boundp 'w32-pipe-buffer-size)
+;;   (setq irony-server-w32-pipe-buffer-size (* 64 1024)))
+;; (add-hook 'irony-mode-hook 'my-irony-mode-hook)
+;; (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+
+;; ;; Windows performance tweaks
+;; ;;
+;; (when (boundp 'w32-pipe-read-delay)
+;;   (setq w32-pipe-read-delay 0))
+;; ;; Set the buffer size to 64K on Windows (from the original 4K)
+;; (when (boundp 'w32-pipe-buffer-size)
+;;   (setq irony-server-w32-pipe-buffer-size (* 64 1024)))
+
+;; (add-hook 'after-init-hook 'global-company-mode)
+
+;; (eval-after-load 'company
+;;   '(add-to-list 'company-backends 'company-irony)
+;;   )
+
+;; (with-eval-after-load 'company
+;;   (define-key company-active-map [tab] 'company-complete-selection)
+;;   (define-key company-active-map (kbd "TAB") 'company-complete-selection)
+;;   (define-key company-active-map (kbd "<down>") nil)
+;;   (define-key company-active-map (kbd "<up>") nil)
+;;   )
+
+(semantic-mode t)
+
+;; (autoload 'turn-on-ctags-auto-update-mode "ctags-update" "turn on `ctags-auto-update-mode'." t)
+;; (add-hook 'c-mode-common-hook  'turn-on-ctags-auto-update-mode)
+;;This is set to c mode only cause it's used to automatically update headerfiles.
+;;(add-hook 'c++-mode-common-hook  'turn-on-ctags-auto-update-mode)
+;;(add-hook 'emacs-lisp-mode-hook  'turn-on-ctags-auto-update-mode)
+
+(add-hook 'c-mode-common-hook
+          (lambda ()
+            (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+              (ggtags-mode 1))))
+(show-paren-mode t)
+(require 'org)
+
+;; (setq org-todo-keywords
+;;   '((sequence "TODO" "IN-PROGRESS" "WAITING" "DONE")))
+(setq org-log-done t)
+(add-to-list 'exec-path "C:/Users/micha/Desktop/New folder (2)")
+
+					;ORG MODE
+
+;; set maximum indentation for description lists
+(setq org-list-description-max-indent 5)
+
+;; prevent demoting heading also shifting text inside sections
+(setq org-adapt-indentation nil)
+
+(defun wicked/org-update-checkbox-count (&optional all)
+  "Update the checkbox statistics in the current section.
+This will find all statistic cookies like [57%] and [6/12] and update
+them with the current numbers.  With optional prefix argument ALL,
+do this for the whole buffer."
+  (interactive "P")
+  (save-excursion
+    (let* ((buffer-invisibility-spec (org-inhibit-invisibility)) 
+	   (beg (condition-case nil
+		    (progn (outline-back-to-heading) (point))
+		  (error (point-min))))
+	   (end (move-marker
+		 (make-marker)
+		 (progn (or (outline-get-next-sibling) ;; (1)
+			    (goto-char (point-max)))
+			(point))))   
+	   (re "\\(\\[[0-9]*%\\]\\)\\|\\(\\[[0-9]*/[0-9]*\\]\\)")
+	   (re-box
+	    "^[ \t]*\\(*+\\|[-+*]\\|[0-9]+[.)]\\) +\\(\\[[- X]\\]\\)")
+	   b1 e1 f1 c-on c-off lim (cstat 0))
+      (when all
+	(goto-char (point-min))
+	(or (outline-get-next-sibling) (goto-char (point-max))) ;; (2)
+	(setq beg (point) end (point-max)))
+      (goto-char beg)
+      (while (re-search-forward re end t)
+	(setq cstat (1+ cstat)
+	      b1 (match-beginning 0)
+	      e1 (match-end 0)
+	      f1 (match-beginning 1)
+	      lim (cond
+		   ((org-on-heading-p)
+		    (or (outline-get-next-sibling) ;; (3)
+			(goto-char (point-max)))
+		    (point))
+		   ((org-at-item-p) (org-end-of-item) (point))
+		   (t nil))
+	      c-on 0 c-off 0)
+	(goto-char e1)
+	(when lim
+	  (while (re-search-forward re-box lim t)
+	    (if (member (match-string 2) '("[ ]" "[-]"))
+		(setq c-off (1+ c-off))
+	      (setq c-on (1+ c-on))))
+	  (goto-char b1)
+	  (insert (if f1
+		      (format "[%d%%]" (/ (* 100 c-on)
+					  (max 1 (+ c-on c-off))))
+		    (format "[%d/%d]" c-on (+ c-on c-off))))
+	  (and (looking-at "\\[.*?\\]")
+	       (replace-match ""))))
+      (when (interactive-p)
+	(message "Checkbox statistics updated %s (%d places)"
+		 (if all "in entire file" "in current outline entry")
+		 cstat)))))
+
+(defadvice org-update-checkbox-count (around wicked activate)
+  "Fix the built-in checkbox count to understand headlines."
+  (setq ad-return-value
+	(wicked/org-update-checkbox-count (ad-get-arg 1))))

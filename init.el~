@@ -1,3 +1,13 @@
+;;TODO LIST:
+;;~Bind ESC to Cancel Autocomplete Menu
+;;~Create functions so that they I try to COPY or CUT when there is no region selected,
+;; it will copy or cut the entire line that the cursor points to
+
+
+
+
+
+
 
 ;;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -18,7 +28,7 @@
 ;; (setq ac-use-quick-help nil)
 
 ;;NOTE: This is the autocomplete that I'm looking for:
-(global-set-key (kbd "S-<tab>") 'dabbrev-expand)
+;;(global-set-key (kbd "S-<tab>") 'dabbrev-expand)
 (setq my_name "Michael")
 
 					;Startup
@@ -37,6 +47,8 @@
 (tool-bar-mode -1)
 (setq-default hl-line-sticky-flag nil)
 (global-hl-line-mode 1)
+;;(electric-pair-mode nil)
+(setq-default backward-delete-char-untabify-method 'hungry)
 					;Format C-Mode and C++-Mode
 
 (setq c-default-style "ellemtel")
@@ -49,8 +61,11 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(company-idle-delay 1)
  '(custom-enabled-themes (quote (tango-dark)))
- '(package-selected-packages (quote (projectile iedit helm diminish company bind-key))))
+ '(ede-project-directories (quote ("w:/Win32Project1/Win32Project1/source")))
+ '(package-selected-packages (quote (company-irony company irony ggtags)))
+ '(tool-bar-mode nil))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -58,34 +73,48 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((t (:inherit nil :stipple nil :background "#282C2E" :foreground "#F5DEB3" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 98 :width normal :foundry "outline" :family "Courier New"))))
+ '(company-tooltip ((t (:background "steel blue" :foreground "black"))))
  '(cursor ((t (:background "green1"))))
  '(font-lock-comment-face ((t (:foreground "gray50"))))
  '(font-lock-constant-face ((t (:foreground "indian red"))))
  '(font-lock-function-name-face ((t (:foreground "#A2793B"))))
  '(font-lock-keyword-face ((t (:foreground "#4DB9EF"))))
- '(font-lock-string-face ((t (:foreground "DarkOliveGreen2"))))
+ '(font-lock-string-face ((t (:foreground "DarkOliveGreen3"))))
  '(font-lock-type-face ((t (:foreground "#CAB048"))))
  '(font-lock-variable-name-face ((t (:foreground "#F0E7B7"))))
  '(highlight ((t (:background "RoyalBlue4"))))
  '(hl-line ((t (:background "black"))))
- '(mode-line ((t (:background "dark slate blue" :foreground "#eeeeec")))))
+ '(mode-line ((t (:background "dark slate blue" :foreground "#eeeeec"))))
+ '(show-paren-match ((t (:background "LightCyan4"))))
+ '(show-paren-mismatch ((t (:background "red" :foreground "white")))))
 
 ;;UNTIL HERE |+++++++++++++++++++++++++++++++++|
 					;Key Bindings
 
-(global-set-key [f9] 'other-window)
+(global-set-key (kbd "C-o") 'other-window)
 (global-set-key [f4] 'kill-buffer)
 (global-set-key (kbd "C-x C-b") 'buffer-menu-other-window)
 (defun my:switch-c-source-files ()
-  (local-set-key (kbd "C-x C-i") 'ff-find-other-file))
+  (local-set-key (kbd "C-x C-i") 'ff-find-other-file)
+  (local-set-key (kbd "<tab>") 'dabbrev-expand)
+  (local-set-key (kbd "S-<tab>") 'indent-for-tab-command)
+  )
 (add-hook 'c-mode-common-hook 'my:switch-c-source-files)
 (add-hook 'c++-mode-common-hook 'my:switch-c-source-files)
+
+;;NOTE:EXPIREMENTAL:-COPY,-PASTE,-CUT | Not sure what key should be what
+(global-set-key (kbd "C-S-w") 'kill-ring-save)
+(global-set-key (kbd "C-z") 'yank)
+
+
 					;Compile
+
 (define-key input-decode-map [?\C-m] [C-m]) ;;Stops C-m from acting as RET
 (setq compile-command "build")
-;;(setq compilation-read-command nill)
+(setq compilation-ask-about-save nil)
+(setq compilation-read-command nil)
 
-(global-set-key (kbd "C-x <C-m>") 'compile)
+(global-set-key (kbd "<C-m>") 'compile)
 
 
 ;;|===========================| My Functions |===========================|
@@ -96,14 +125,21 @@
 (setq todo-modes '(text-mode c++-mode c-mode emacs-lisp-mode))
 (make-face 'my_todo_face)
 (make-face 'my_note_face)
+(make-face 'my_study_face)
+(make-face 'my_warning_face)
 (mapc (lambda (mode)
 	(font-lock-add-keywords
 	 mode
 	 '(("\\<\\(TODO\\)" 1 'my_todo_face t)
-	   ("\\<\\(NOTE\\)" 1 'my_note_face t))))
+	   ("\\<\\(NOTE\\)" 1 'my_note_face t)
+	   ("\\<\\(WARNING\\)" 1 'my_warning_face t)
+	   ("\\<\\(STUDY\\)" 1 'my_study_face t)
+	   )))
       todo-modes)
 (modify-face 'my_todo_face "Red" nil nil t nil t nil nil)
 (modify-face 'my_note_face "Dark Green" nil nil t nil t nil nil)
+(modify-face 'my_warning_face "Yellow" nil nil t nil t nil nil)
+(modify-face 'my_study_face "Yellow" nil nil t nil t nil nil)
 
 
 					;# NOT SURE WHAT TO CALL YET #
@@ -122,7 +158,8 @@
   (interactive)
   (beginning-of-line)
   (save-excursion
-    (newline)))
+    (newline))
+  (c-indent-line-or-region))
 (global-set-key (kbd "<S-return>") 'insert-line-up)
 
 ;;Instert a line down
@@ -130,8 +167,87 @@
   "Inserts a newline below the current one and moves the cursor there."
   (interactive)
   (end-of-line)
-  (newline))
+  (newline-and-indent))
 (global-set-key (kbd "<C-return>") 'insert-line-down)
+
+
+
+
+					;EDITING
+(defun my-delete-word (arg)
+  "Delete characters forward until encountering the end of a word.
+With argument, do this that many times.
+This command does not push text to `kill-ring'."
+  (interactive "p")
+  (delete-region
+   (point)
+   (progn
+     (forward-word arg)
+     (point))))
+
+(defun my-backward-delete-word (arg)
+  "Delete characters backward until encountering the beginning of a word.
+With argument, do this that many times.
+This command does not push text to `kill-ring'."
+  (interactive "p")
+  (my-delete-word (- arg)))
+
+(defun my-delete-line ()
+  "Delete text from current position to end of line char.
+This command does not push text to `kill-ring'."
+  (interactive)
+  (delete-region
+   (point)
+   (progn (end-of-line 1) (point)))
+  (delete-char 1))
+
+(defun my-delete-line-backward ()
+  "Delete text between the beginning of the line to the cursor position.
+This command does not push text to `kill-ring'."
+  (interactive)
+  (let (p1 p2)
+    (setq p1 (point))
+    (beginning-of-line 1)
+    (setq p2 (point))
+    (delete-region p1 p2)))
+
+;;================================================================
+
+(defun my-swap-line-up ()
+  (interactive)
+  "Swaps the current line witht the one above"
+  (beginning-of-line)
+  (kill-whole-line)
+  (previous-line)
+(save-excursion
+  (yank))
+  )
+
+(defun my-swap-line-down ()
+  (interactive)
+  "Swaps the current line witht the one above"
+  (beginning-of-line)
+  (kill-whole-line)
+  (next-line)
+(save-excursion
+  (yank))
+  )
+
+(global-set-key (kbd "M-<up>") 'my-swap-line-up)
+(global-set-key (kbd "M-<down>") 'my-swap-line-down)
+
+;;================================================================
+
+;;NOTE:EXPIREMENTAL: Bind them to emacs's default shortcut keys:
+;;TODO: Make a single delete line command that will delete the entire line
+(global-set-key (kbd "C-S-k") 'my-delete-line-backward)
+(global-set-key (kbd "C-k") 'my-delete-line)
+;;(global-set-key (kbd "M-d") 'my-delete-word)
+(global-set-key (kbd "C-d") 'my-delete-word)
+;;(global-set-key (kbd "<M-backspace>") 'my-backward-delete-word)
+(global-set-key (kbd "<C-backspace>") 'my-backward-delete-word)
+
+
 
 ;;Test Functions
 
@@ -144,4 +260,91 @@
 		  (get-char-property (point) 'face))))
     (if face (message "Face: %s" face) (message "No face at %d" pos))))			   
 ;;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+;;WARNING: EXPIREMENTAL!!!!!!!!
+;; (require 'auto-complete)
+;; (require 'auto-complete-config)
+;; (ac-config-default)
+
+;; (defun my:ac-c-header-init ()
+;;   (require 'auto-complete-c-headers)
+;;   (add-to-list 'ac-sources 'ac-source-c-headers)
+;;   (add-to-list 'achead:include-directories '"C:/MinGW/include")
+;; )
+;; ; now let's call this function from c/c++ hooks
+;; (add-hook 'c++-mode-hook 'my:ac-c-header-init)
+;; (add-hook 'c-mode-hook 'my:ac-c-header-init)
+
+
+;; (autoload 'turn-on-ctags-auto-update-mode "ctags-update" "turn on `ctags-auto-update-mode'." t)
+;; (add-hook 'c-mode-common-hook  'turn-on-ctags-auto-update-mode)
+;; (add-hook 'c++-mode-common-hook  'turn-on-ctags-auto-update-mode)
+;; (add-hook 'emacs-lisp-mode-hook  'turn-on-ctags-auto-update-mode)
+
+;; (require 'auto-complete-exuberant-ctags)
+;; (ac-exuberant-ctags-setup)
+
+;; (define-key ac-completing-map [down] nil)
+;; (define-key ac-completing-map [up] nil)
+;; (define-key ac-completing-map (kbd "<backtab>") 'ac-expand) 
+;; (define-key ac-completing-map "\t" 'ac-complete)
+;; (define-key ac-completing-map [tab] 'ac-complete)
+;; (define-key ac-completing-map "\r" nil)
+
+
+(add-hook 'c++-mode-hook 'irony-mode)
+(add-hook 'c-mode-hook 'irony-mode)
+(add-hook 'objc-mode-hook 'irony-mode)
+
+;; replace the `completion-at-point' and `complete-symbol' bindings in
+;; irony-mode's buffers by irony-mode's function
+(defun my-irony-mode-hook ()
+  (define-key irony-mode-map [remap completion-at-point]
+    'irony-completion-at-point-async)
+  (define-key irony-mode-map [remap complete-symbol]
+    'irony-completion-at-point-async));; Windows performance tweaks
+;;
+(when (boundp 'w32-pipe-read-delay)
+  (setq w32-pipe-read-delay 0))
+;; Set the buffer size to 64K on Windows (from the original 4K)
+(when (boundp 'w32-pipe-buffer-size)
+  (setq irony-server-w32-pipe-buffer-size (* 64 1024)))
+(add-hook 'irony-mode-hook 'my-irony-mode-hook)
+(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+
+;; Windows performance tweaks
+;;
+(when (boundp 'w32-pipe-read-delay)
+  (setq w32-pipe-read-delay 0))
+;; Set the buffer size to 64K on Windows (from the original 4K)
+(when (boundp 'w32-pipe-buffer-size)
+  (setq irony-server-w32-pipe-buffer-size (* 64 1024)))
+
+(add-hook 'after-init-hook 'global-company-mode)
+
+(eval-after-load 'company
+  '(add-to-list 'company-backends 'company-irony)
+  )
+
+(with-eval-after-load 'company
+  (define-key company-active-map [tab] 'company-complete-selection)
+  (define-key company-active-map (kbd "TAB") 'company-complete-selection)
+  (define-key company-active-map (kbd "<down>") nil)
+  (define-key company-active-map (kbd "<up>") nil)
+  )
+
+(semantic-mode t)
+
+;; (autoload 'turn-on-ctags-auto-update-mode "ctags-update" "turn on `ctags-auto-update-mode'." t)
+;; (add-hook 'c-mode-common-hook  'turn-on-ctags-auto-update-mode)
+;;This is set to c mode only cause it's used to automatically update headerfiles.
+;;(add-hook 'c++-mode-common-hook  'turn-on-ctags-auto-update-mode)
+;;(add-hook 'emacs-lisp-mode-hook  'turn-on-ctags-auto-update-mode)
+
+(add-hook 'c-mode-common-hook
+          (lambda ()
+            (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+              (ggtags-mode 1))))
+
+(show-paren-mode t)
 
